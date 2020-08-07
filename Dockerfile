@@ -58,9 +58,9 @@ RUN yum update -y \
     && mv coreruleset/rules/ /etc/nginx/modsec/ \
     && mv coreruleset/crs-setup.conf.example /etc/nginx/modsec/crs-setup.conf \
     && mv /etc/nginx/modsec/rules/RESPONSE-999-EXCLUSION-RULES-AFTER-CRS.conf.example /etc/nginx/modsec/RESPONSE-999-EXCLUSION-RULES-AFTER-CRS.conf \
-    && sed "/pid /run/nginx.pid\;/a load_module modules/ngx_http_modsecurity_module.so\;" /etc/nginx/nginx.conf \
-    && sed "/server {/a     modsecurity on\;" /etc/nginx/nginx.conf \
-    && sed "/include /etc/nginx/default.d/*.conf\;/a     modsecurity_rules_file /etc/nginx/modsec_includes.conf\;" /etc/nginx/nginx.conf \
+    && sed -i '/pid \/run\/nginx.pid;/a   load_module modules\/ngx_http_modsecurity_module.so;\' /etc/nginx/nginx.conf \
+    && sed -i '/server {/a     modsecurity on;' /etc/nginx/nginx.conf \
+    && sed -i '/include \/etc\/nginx\/default.d/*.conf;/a     modsecurity_rules_file \/etc\/nginx\/modsec_includes.conf;' /etc/nginx/nginx.conf \
     && yum --disableplugin=subscription-manager clean all -y \
     && rm -rf /var/cache/yum \
     && rm -rf /var/tmp/yum-* \
