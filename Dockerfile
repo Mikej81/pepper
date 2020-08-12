@@ -76,13 +76,20 @@ RUN if [ "$PLATFORM" = "opensource" ] ; then \
 
     FROM base as proxy 
 
-    RUN cd ${home} \
-    && git clone https://github.com/coreruleset/coreruleset.git \
-    && mv coreruleset/rules/ /etc/nginx/modsec/ \
-    && mv coreruleset/crs-setup.conf.example /etc/nginx/modsec/crs-setup.conf \
-    && mv /etc/nginx/modsec/rules/RESPONSE-999-EXCLUSION-RULES-AFTER-CRS.conf.example /etc/nginx/modsec/RESPONSE-999-EXCLUSION-RULES-AFTER-CRS.conf \
-    && echo $'# NGINX Secured Proxy in a Box\n# Michael Coleman @ F5\n\nuser nginx;\nworker_processes auto;\nerror_log /var/log/nginx/error.log;\npid /run/nginx.pid;\n\nload_module modules/ngx_http_modsecurity_module.so;\n\ninclude /usr/share/nginx/modules/*.conf;\n\nevents {\n    worker_connections 1024;\n}\n\nhttp {\n    server_names_hash_bucket_size  128;\n\n    log_format  main  \'\$remote_addr - \$remote_user [\$time_local] "\$request" \'\n                      \'\$status \$body_bytes_sent "\$http_referer" \'\n                      \'"\$http_user_agent" "\$http_x_forwarded_for"\';\n\n    access_log  /var/log/nginx/access.log  main;\n\n    tcp_nodelay         on;\n    keepalive_timeout   65;\n    types_hash_max_size 2048;\n\n    include             /etc/nginx/mime.types;\n    default_type        application/octet-stream;\n\n    include /etc/nginx/conf.d/*.conf;\n\n    server {\n        listen       80 default_server;\n        listen       [::]:80 default_server;\n\n        server_name  _;\n\n        modsecurity on;\n        modsecurity_rules_file /etc/nginx/modsec_includes.conf;\n\n        access_log /var/log/nginx/access.log;\n        error_log  /var/log/nginx/error.log;\n\n        # Perfect Forward Security\n        ssl_protocols TLSv1.2;\n        ssl_prefer_server_ciphers on;\n        ssl_ciphers "EECDH+ECDSA+AESGCM EECDH+ECDSA+SHA384 EECDH+ECDSA+SHA256 EECDH !aNULL !eNULL !LOW !3DES !MD5 !EXP !PSK !SRP !DSS !RC4 !CBC";\n        ssl_stapling on;\n        ssl_stapling_verify on;\n        ssl_session_cache    shared:SSL:10m;\n        ssl_session_timeout  10m;\n\n        root         /usr/share/nginx/html;\n\n        include /etc/nginx/default.d/*.conf;\n\n        location / {\n        }\n        error_page 404 /404.html;\n            location = /40x.html {\n        }\n        error_page 500 502 503 504 /50x.html;\n            location = /50x.html {\n        }\n    }\n}' > /etc/nginx/nginx.conf \
-    && echo $'include modsecurity.conf\ninclude /etc/nginx/modsec/crs-setup.conf\ninclude /etc/nginx/modsec/rules/*.conf\nSecRule REQUEST_URI "@beginsWith /rss/" "phase:1,t:none,pass,id:\'26091902\',nolog,ctl:ruleRemoveById=200002"' >> /etc/nginx/modsec_includes.conf
+    RUN if [ "$PLATFORM" = "opensource" ] ; then \
+      cd ${home} \
+      && git clone https://github.com/coreruleset/coreruleset.git \
+      && mv coreruleset/rules/ /etc/nginx/modsec/ \
+      && mv coreruleset/crs-setup.conf.example /etc/nginx/modsec/crs-setup.conf \
+      && mv /etc/nginx/modsec/rules/RESPONSE-999-EXCLUSION-RULES-AFTER-CRS.conf.example /etc/nginx/modsec/RESPONSE-999-EXCLUSION-RULES-AFTER-CRS.conf \
+      && echo $'# NGINX Secured Proxy in a Box\n# Michael Coleman @ F5\n\nuser nginx;\nworker_processes auto;\nerror_log /var/log/nginx/error.log;\npid /run/nginx.pid;\n\nload_module modules/ngx_http_modsecurity_module.so;\n\ninclude /usr/share/nginx/modules/*.conf;\n\nevents {\n    worker_connections 1024;\n}\n\nhttp {\n    server_names_hash_bucket_size  128;\n\n    log_format  main  \'\$remote_addr - \$remote_user [\$time_local] "\$request" \'\n                      \'\$status \$body_bytes_sent "\$http_referer" \'\n                      \'"\$http_user_agent" "\$http_x_forwarded_for"\';\n\n    access_log  /var/log/nginx/access.log  main;\n\n    tcp_nodelay         on;\n    keepalive_timeout   65;\n    types_hash_max_size 2048;\n\n    include             /etc/nginx/mime.types;\n    default_type        application/octet-stream;\n\n    include /etc/nginx/conf.d/*.conf;\n\n    server {\n        listen       80 default_server;\n        listen       [::]:80 default_server;\n\n        server_name  _;\n\n        modsecurity on;\n        modsecurity_rules_file /etc/nginx/modsec_includes.conf;\n\n        access_log /var/log/nginx/access.log;\n        error_log  /var/log/nginx/error.log;\n\n        # Perfect Forward Security\n        ssl_protocols TLSv1.2;\n        ssl_prefer_server_ciphers on;\n        ssl_ciphers "EECDH+ECDSA+AESGCM EECDH+ECDSA+SHA384 EECDH+ECDSA+SHA256 EECDH !aNULL !eNULL !LOW !3DES !MD5 !EXP !PSK !SRP !DSS !RC4 !CBC";\n        ssl_stapling on;\n        ssl_stapling_verify on;\n        ssl_session_cache    shared:SSL:10m;\n        ssl_session_timeout  10m;\n\n        root         /usr/share/nginx/html;\n\n        include /etc/nginx/default.d/*.conf;\n\n        location / {\n        }\n        error_page 404 /404.html;\n            location = /40x.html {\n        }\n        error_page 500 502 503 504 /50x.html;\n            location = /50x.html {\n        }\n    }\n}' > /etc/nginx/nginx.conf \
+      && echo $'include modsecurity.conf\ninclude /etc/nginx/modsec/crs-setup.conf\ninclude /etc/nginx/modsec/rules/*.conf\nSecRule REQUEST_URI "@beginsWith /rss/" "phase:1,t:none,pass,id:\'26091902\',nolog,ctl:ruleRemoveById=200002"' > /etc/nginx/modsec_includes.conf; \
+    elif [ "$PLATFORM" = "plus"  ] ; then \
+      # load_module modules/ngx_http_app_protect_module.so;
+      # app_protect_enable on;
+      echo '' > /etc/nginx/nginx.conf \
+      && echo '' > /etc/nginx/modsec_includes.conf; \
+    fi
 
 EXPOSE 80 443
 #USER 1001
