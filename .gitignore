@@ -1,0 +1,16 @@
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# dotenv environment variables file
+.env
+.env.test
+
+# cert key
+*.crt
+*.key
+
+# Stores VSCode versions used for testing VSCode extensions
+.vscode-test
