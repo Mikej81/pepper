@@ -1,5 +1,6 @@
 # pepper
-Working location for Hardened Container based NGINX Proxy 
+
+Working location for Hardened Container based NGINX Proxy
 
 Option to select opensource or plus deployment.
 
@@ -9,4 +10,4 @@ Option to select opensource or plus deployment.
 
 NGINX OSS comes with with ModSec(OWASP CRS), GeoIP, and SNORT (eventually).
 
-NGINX+ comes with App Protect.
+NGINX+ comes with App Protect and GeoIP.
