@@ -1,13 +1,15 @@
 #FROM registry.access.redhat.com/ubi8/ubi:8.1
 FROM centos:7 as base
 
-ENV PLATFORM=opensource
-ENV KEYPAIRPATH=~/
+ENV PLATFORM=plus
 
 ARG nginxVer=1.16.1
 ARG home=/usr/src
 
 WORKDIR /usr/src
+
+COPY dockerfile nginx-repo.crt ${WORKDIR}/
+COPY dockerfile nginx-repo.key ${WORKDIR}/
 
 RUN if [ "$PLATFORM" = "opensource" ] ; then \
       yum update -y \
@@ -61,10 +63,10 @@ RUN if [ "$PLATFORM" = "opensource" ] ; then \
       && yum remove `package-cleanup --quiet --leaves` -y \
       && package-cleanup --oldkernels --count=1; \
     elif [ "$PLATFORM" = "plus"  ] ; then \
-      sudo mkdir /etc/ssl/nginx \
+      mkdir /etc/ssl/nginx \
       && cd /etc/ssl/nginx \
-      && cp ${KEYPAIRPATH}nginx-repo.crt /etc/ssl/nginx/ \
-      && cp ${KEYPAIRPATH}nginx-repo.key /etc/ssl/nginx/ \
+      && cp ${WORKDIR}/nginx-repo.crt /etc/ssl/nginx/ \
+      && cp ${WORKDIR}/nginx-repo.key /etc/ssl/nginx/ \
       && yum update -y \
       && yum install ca-certificates epel-release wget -y \
       && wget -P /etc/yum.repos.d https://cs.nginx.com/static/files/nginx-plus-7.4.repo \
@@ -85,8 +87,10 @@ RUN if [ "$PLATFORM" = "opensource" ] ; then \
       && echo $'# NGINX Secured Proxy in a Box\n# Michael Coleman @ F5\n\nuser nginx;\nworker_processes auto;\nerror_log /var/log/nginx/error.log;\npid /run/nginx.pid;\n\nload_module modules/ngx_http_modsecurity_module.so;\n\ninclude /usr/share/nginx/modules/*.conf;\n\nevents {\n    worker_connections 1024;\n}\n\nhttp {\n    server_names_hash_bucket_size  128;\n\n    log_format  main  \'\$remote_addr - \$remote_user [\$time_local] "\$request" \'\n                      \'\$status \$body_bytes_sent "\$http_referer" \'\n                      \'"\$http_user_agent" "\$http_x_forwarded_for"\';\n\n    access_log  /var/log/nginx/access.log  main;\n\n    tcp_nodelay         on;\n    keepalive_timeout   65;\n    types_hash_max_size 2048;\n\n    include             /etc/nginx/mime.types;\n    default_type        application/octet-stream;\n\n    include /etc/nginx/conf.d/*.conf;\n\n    server {\n        listen       80 default_server;\n        listen       [::]:80 default_server;\n\n        server_name  _;\n\n        modsecurity on;\n        modsecurity_rules_file /etc/nginx/modsec_includes.conf;\n\n        access_log /var/log/nginx/access.log;\n        error_log  /var/log/nginx/error.log;\n\n        # Perfect Forward Security\n        ssl_protocols TLSv1.2;\n        ssl_prefer_server_ciphers on;\n        ssl_ciphers "EECDH+ECDSA+AESGCM EECDH+ECDSA+SHA384 EECDH+ECDSA+SHA256 EECDH !aNULL !eNULL !LOW !3DES !MD5 !EXP !PSK !SRP !DSS !RC4 !CBC";\n        ssl_stapling on;\n        ssl_stapling_verify on;\n        ssl_session_cache    shared:SSL:10m;\n        ssl_session_timeout  10m;\n\n        root         /usr/share/nginx/html;\n\n        include /etc/nginx/default.d/*.conf;\n\n        location / {\n        }\n        error_page 404 /404.html;\n            location = /40x.html {\n        }\n        error_page 500 502 503 504 /50x.html;\n            location = /50x.html {\n        }\n    }\n}' > /etc/nginx/nginx.conf \
       && echo $'include modsecurity.conf\ninclude /etc/nginx/modsec/crs-setup.conf\ninclude /etc/nginx/modsec/rules/*.conf\nSecRule REQUEST_URI "@beginsWith /rss/" "phase:1,t:none,pass,id:\'26091902\',nolog,ctl:ruleRemoveById=200002"' > /etc/nginx/modsec_includes.conf; \
     elif [ "$PLATFORM" = "plus"  ] ; then \
-      echo $'  load_module modules/ngx_http_app_protect_module.so;\n app_protect_enable on;' > /etc/nginx/nginx.conf \
-      && echo '' > /etc/nginx/modsec_includes.conf; \
+      echo $'# NGINX Secured Proxy in a Box\n# Michael Coleman @ F5\n\nuser  nginx;\nworker_processes  auto;\n\nerror_log  /var/log/nginx/error.log notice;\npid        /var/run/nginx.pid;\n\nload_module modules/ngx_http_app_protect_module.so;\n\nevents {\n    worker_connections  1024;\n}\n\n\nhttp {\n    include       /etc/nginx/mime.types;\n    default_type  application/octet-stream;\n\n    log_format  main  \'\$remote_addr - \$remote_user [\$time_local] "\$request" \'\n                      \'\$status \$body_bytes_sent "\$http_referer" \'\n                      \'"\$http_user_agent" "\$http_x_forwarded_for"\';\n\n    access_log  /var/log/nginx/access.log  main;\n\n    sendfile        on;\n\n    keepalive_timeout  65;\n\n    server {\n        listen       80 default_server;\n        listen       [::]:80 default_server;\n\n        app_protect_enable on;\n\n        server_name  _;\n\n        access_log /var/log/nginx/access.log;\n        error_log  /var/log/nginx/error.log;\n\n        # Perfect Forward Security\n        ssl_protocols TLSv1.2;\n        ssl_prefer_server_ciphers on;\n        ssl_ciphers "EECDH+ECDSA+AESGCM EECDH+ECDSA+SHA384 EECDH+ECDSA+SHA256 EECDH !aNULL !eNULL !LOW !3DES !MD5 !EXP !PSK !SRP !DSS !RC4 !CBC";\n        ssl_stapling on;\n        ssl_stapling_verify on;\n        ssl_session_cache    shared:SSL:10m;\n        ssl_session_timeout  10m;\n\n        root         /usr/share/nginx/html;\n\n        include /etc/nginx/default.d/*.conf;\n\n        location / {\n        }\n        error_page 404 /404.html;\n            location = /40x.html {\n        }\n        error_page 500 502 503 504 /50x.html;\n            location = /50x.html {\n        }\n    }\n\n}' > /etc/nginx/nginx.conf \
+      && echo $'#!/usr/bin/env bash\n\n/bin/su -s /bin/bash -c \'/opt/app_protect/bin/bd_agent &\' nginx\n/bin/su -s /bin/bash -c "/usr/share/ts/bin/bd-socket-plugin tmm_count 4 proc_cpuinfo_cpu_mhz 2000000 total_xml_memory 307200000 total_umu_max_size 3129344 sys_max_account_id 1024 no_static_config 2>&1 > /var/log/app_protect/bd-socket-plugin.log &" nginx' > ${WORKDIR}/entrypoint.sh \
+      && chmod +x ${WORKDIR}/entrypoint.sh \
+      && ${WORKDIR}/entrypoint.sh; \
     fi
 
 EXPOSE 80 443
