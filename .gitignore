@@ -18,9 +18,6 @@ pids
 # dont publish nginx.conf files
 *.conf
 
-# dont share my makefile
-makefile
-
 *.json
 
 *.sh
