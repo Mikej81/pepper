@@ -2,12 +2,18 @@
 
 Working location for Hardened Container based NGINX Proxy
 
-Option to select opensource or plus deployment.
+Option to select opensource or plus deployment at build.
 
 ```bash
---env PLATFORM=opensource/plus
+--build-arg PLATFORM=oss/plus
 ```
 
-NGINX OSS comes with with ModSec(OWASP CRS), GeoIP, and SNORT (eventually).
+Ensure that option for build is sent during runtime as well.
 
-NGINX+ comes with App Protect and GeoIP.
+```bash
+-env PLATFORM=oss/plus
+```
+
+NGINX OSS comes with with ModSec(OWASP CRS), GeoIP.
+
+NGINX+ comes with App Protect.
