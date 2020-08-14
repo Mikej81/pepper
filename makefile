@@ -2,7 +2,7 @@
 
 export CONTAINER_IMAGE=pepper
 export UPSTREAM_SERVER=example.com
-export PLATFORM=oss
+export PLATFORM=plus
 
 oss:
 		docker build --pull --rm -f "dockerfile" -t ${CONTAINER_IMAGE}:latest  "." --build-arg PLATFORM=oss

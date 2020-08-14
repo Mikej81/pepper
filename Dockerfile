@@ -64,14 +64,14 @@ RUN if [[ ${PLATFORM} = "oss" ]] ; then \
     elif [[ ${PLATFORM} = "plus"  ]] ; then \
       mkdir /etc/ssl/nginx \
       && mv ${WORKDIR}/nginx-repo.* /etc/ssl/nginx/ \
+      && yum update -y \
       && yum -y install wget ca-certificates epel-release -y \
       && wget -P /etc/yum.repos.d https://cs.nginx.com/static/files/nginx-plus-7.repo \
       && yum -y install app-protect \
       && yum install nginx-plus-module-modsecurity nginx-plus-module-xslt nginx-plus-module-geoip -y \
       && yum install nginx-plus-module-image-filter nginx-plus-module-perl nginx-plus-module-njs -y \
       && yum clean all \
-      && rm -rf /var/cache/yum \
-      && rm -rf /etc/ssl/nginx; \
+      && rm -rf /var/cache/yum; \
     fi
 
 FROM base as proxy 
@@ -96,7 +96,8 @@ elif [[ ${PLATFORM} = "plus"  ]] ; then \
   && echo -e 'ewogICAgImZpbHRlciI6IHsKICAgICAgICAicmVxdWVzdF90eXBlIjogImFsbCIKICAgIH0sCiAgICAiY29udGVudCI6IHsKICAgICAgICAiZm9ybWF0IjogInNwbHVuayIsCiAgICAgICAgIm1heF9yZXF1ZXN0X3NpemUiOiAiYW55IiwKICAgICAgICAibWF4X21lc3NhZ2Vfc2l6ZSI6ICIxMGsiCiAgICB9Cn0=' | base64 -d > /etc/nginx/custom_log_format.json \
   && wget -P /etc/yum.repos.d https://cs.nginx.com/static/files/app-protect-signatures-7.repo \
   && yum install app-protect-threat-campaigns -y \
-  && yum install app-protect-attack-signatures -y; \
+  && yum install app-protect-attack-signatures -y \
+  && rm -rf /etc/ssl/nginx; \
 fi
 
 # Create Entrypoint.sh
@@ -112,5 +113,5 @@ EXPOSE 80 443
 
 STOPSIGNAL SIGTERM
 
-#CMD ["sh", "/usr/src/entrypoint.sh"] 
-CMD ["bash"]
+CMD ["sh", "/usr/src/entrypoint.sh"] 
+#CMD ["bash"]
