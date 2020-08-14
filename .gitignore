@@ -20,3 +20,7 @@ pids
 
 # dont share my makefile
 makefile
+
+*.json
+
+*.sh
