@@ -14,6 +14,6 @@ Ensure that option for build is sent during runtime as well.
 --env PLATFORM=oss/plus
 ```
 
-NGINX OSS comes with with ModSec(OWASP CRS), GeoIP.
+NGINX OSS comes with with ModSec(OWASP CRS).
 
-NGINX+ comes with App Protect.
+NGINX+ comes with App Protect and current signatures.
