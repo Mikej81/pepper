@@ -11,7 +11,7 @@ Option to select opensource or plus deployment at build.
 Ensure that option for build is sent during runtime as well.
 
 ```bash
--env PLATFORM=oss/plus
+--env PLATFORM=oss/plus
 ```
 
 NGINX OSS comes with with ModSec(OWASP CRS), GeoIP.
