@@ -11,12 +11,12 @@ WORKDIR /usr/src
 COPY dockerfile nginx-repo.crt nginx-repo.key ${WORKDIR}/
 
 RUN if [[ ${PLATFORM} = "oss" ]] ; then \
-      yum update -y \
+      yum upgrade -y \
       && yum install epel-release -y \
       && yum groupinstall 'Development Tools' -y \
       && yum group mark install "Development Tools" \
       && yum group update "Development Tools" -y \
-      && yum update -y \
+      && yum upgrade -y \
       && yum install nginx -y\
       && yum install gcc-c++ flex bison yajl yajl-devel curl-devel curl GeoIP-devel doxygen zlib-devel wget openssl-devel -y \
       && yum install lmdb lmdb-devel libxml2 libxml2-devel ssdeep ssdeep-devel lua lua-devel pcre-devel libxslt-devel curl -y \
@@ -64,12 +64,11 @@ RUN if [[ ${PLATFORM} = "oss" ]] ; then \
     elif [[ ${PLATFORM} = "plus"  ]] ; then \
       mkdir /etc/ssl/nginx \
       && mv ${WORKDIR}/nginx-repo.* /etc/ssl/nginx/ \
-      && yum update -y \
+      && yum upgrade -y \
       && yum -y install wget ca-certificates epel-release -y \
       && wget -P /etc/yum.repos.d https://cs.nginx.com/static/files/nginx-plus-7.repo \
       && yum -y install app-protect \
-      && yum install nginx-plus-module-modsecurity nginx-plus-module-xslt nginx-plus-module-geoip -y \
-      && yum install nginx-plus-module-image-filter nginx-plus-module-perl nginx-plus-module-njs -y \
+      && yum install nginx-plus-module-xslt nginx-plus-module-image-filter nginx-plus-module-perl nginx-plus-module-njs -y \
       && yum clean all \
       && rm -rf /var/cache/yum; \
     fi
